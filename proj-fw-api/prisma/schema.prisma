@@ -1,0 +1,341 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  mUserId              Int           @id @default(autoincrement()) @map("m_user_id")
+  userId               String        @unique() @map("user_id") @db.VarChar(50)
+  username             String        @map("user_name") @db.VarChar(128)
+  usernameKana         String?       @map("user_name_kana") @db.VarChar(128)
+  mailAddress          String?       @unique() @map("mail_address") @db.VarChar(256)
+  tel                  String?       @db.VarChar(13)
+  roleDiv              String        @map("role_div") @db.Char(2)
+  password             String        @db.VarChar(255)
+  createdBy            Int?          @map("created_by")
+  updatedBy            Int?          @map("updated_by")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at")
+  company              Company?      @relation(fields: [companyCd], references: [companyCd])
+  companyCd            String?       @map("company_cd") @db.Char(4)
+  supplierCd           String?       @map("supplier_cd") @db.Char(2)
+  supplier             Supplier?     @relation(fields: [supplierCd], references: [supplierCd])
+  orderHeader          OrderHeader[]
+  orderHeaderUpdatedBy OrderHeader[] @relation("updatedBy")
+
+  @@map("users")
+}
+
+model Company {
+  companyCd         String              @id @map("company_cd") @db.Char(4)
+  companyName       String              @map("company_nm") @db.VarChar(128)
+  companyDiv        String?             @map("company_div") @db.Char(2)
+  companyNameKana   String?             @map("company_name_kana") @db.VarChar(128)
+  tel               String?             @db.VarChar(13)
+  postCd            String?             @map("post_cd") @db.VarChar(7)
+  address1          String?             @db.VarChar(256)
+  address2          String?             @db.VarChar(256)
+  address3          String?             @db.VarChar(256)
+  createdBy         Int?                @map("created_by")
+  updatedBy         Int?                @map("updated_by")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at")
+  users             User[]
+  commercialFlows   CommercialFlow[]
+  staffs            Staff[]
+  bases             Base[]
+  orderHeaders      OrderHeader[]
+  changeOrderHeader ChangeOrderHeader[]
+
+  @@map("companies")
+}
+
+model Staff {
+  id                Int                 @id @default(autoincrement())
+  staffName         String              @map("staff_name") @db.VarChar(128)
+  staffNameKana     String?             @map("staff_name_kana") @db.VarChar(128)
+  companyCd         String              @map("company_cd") @db.Char(4)
+  company           Company             @relation(fields: [companyCd], references: [companyCd])
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at")
+  orderHeader       OrderHeader[]
+  changeOrderHeader ChangeOrderHeader[]
+
+  @@map("staffs")
+}
+
+model Supplier {
+  supplierCd         String              @id @map("supplier_cd") @db.Char(2)
+  supplierName       String              @map("supplier_name") @db.VarChar(128)
+  supplierNameKana   String?             @map("supplier_name_kana") @db.VarChar(128)
+  tel                String?             @db.VarChar(13)
+  postCd             String?             @map("post_cd") @db.VarChar(7)
+  address1           String?             @db.VarChar(256)
+  address2           String?             @db.VarChar(256)
+  address3           String?             @db.VarChar(256)
+  parentSupplierCd   String?             @map("parent_supplier_cd") @db.Char(2)
+  createdBy          Int?                @map("created_by")
+  updatedBy          Int?                @map("updated_by")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at")
+  users              User[]
+  products           Product[]
+  orderHeaders       OrderHeader[]
+  changeOrderHeaders ChangeOrderHeader[]
+  commercialFlows    CommercialFlow[]
+
+  @@map("suppliers")
+}
+
+model News {
+  id                   Int      @id @default(autoincrement())
+  title                String   @map("title") @db.VarChar(400)
+  description          String   @map("description") @db.VarChar(2000)
+  publicationStartDate DateTime @map("publication_start_date")
+  publicationEndDate   DateTime @map("publication_end_date")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("news")
+}
+
+model Item {
+  itemCd             String              @id @map("item_cd") @db.Char(2)
+  itemName           String              @map("item_name") @db.VarChar(128)
+  iconFileName       String?             @map("icon_file_name") @db.VarChar(255)
+  displayDiv         String?             @map("display_div") @db.Char(2)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at")
+  products           Product[]
+  orderHeaders       OrderHeader[]
+  changeOrderHeaders ChangeOrderHeader[]
+  commercialFlows    CommercialFlow[]
+
+  @@map("items")
+}
+
+model Product {
+  productCd          String          @id @map("product_cd") @db.Char(7)
+  productName        String?         @map("product_name") @db.VarChar(128)
+  productDisplayName String?         @map("product_display_name") @db.VarChar(128)
+  supplierCd         String?         @map("supplier_cd") @db.Char(2)
+  supplier           Supplier?       @relation(fields: [supplierCd], references: [supplierCd])
+  itemCd             String?         @map("item_cd") @db.Char(2)
+  item               Item?           @relation(fields: [itemCd], references: [itemCd])
+  productId          Int?            @map("product_id")
+  gradeStrength      String?         @map("grade_strength") @db.VarChar(128)
+  trailer            String?         @map("trailer") @db.VarChar(128)
+  memo               String?         @map("memo") @db.VarChar(128)
+  capacityMin        String?         @map("capacity_min") @db.VarChar(128)
+  capacityMax        String?         @map("capacity_max") @db.VarChar(128)
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at")
+  productDetails     ProductDetail[]
+  productPrices      ProductPrice[]
+
+  @@map("products")
+}
+
+model ProductDetail {
+  productDetailCd String   @id @map("product_detail_cd") @db.VarChar(20)
+  productCd       String   @map("product_cd") @db.Char(7)
+  product         Product  @relation(fields: [productCd], references: [productCd])
+  width           Int      @map("width")
+  thickness       Int      @map("thickness")
+  length          String   @map("length") @db.VarChar(10)
+  quantityPerPack Int      @map("quantity_per_pack")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  orderDetails       OrderDetail[]
+  changeOrderDetails ChangeOrderDetail[]
+
+  @@map("product_details")
+}
+
+model ProductPrice {
+  id        Int      @id @default(autoincrement())
+  productCd String   @map("product_cd") @db.Char(7)
+  product   Product  @relation(fields: [productCd], references: [productCd])
+  unitDiv   String?  @map("unit_div") @db.Char(2)
+  unitPrice Float    @map("unit_price") @db.Float()
+  startDate DateTime @map("start_date") @db.DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("product_prices")
+}
+
+model OrderHeader {
+  id                 Int                 @id @default(autoincrement())
+  itemCd             String              @map("item_cd") @db.Char(2)
+  item               Item                @relation(fields: [itemCd], references: [itemCd])
+  supplierCd         String              @map("supplier_cd") @db.Char(2)
+  supplier           Supplier            @relation(fields: [supplierCd], references: [supplierCd])
+  vehicleClassDiv    String?             @map("vehicle_class_div") @db.Char(2)
+  destinationId      Int?                @map("destination_id")
+  tradingCompany     String?             @map("trading_company") @db.VarChar(128)
+  mixedLoadingFlag   Boolean?            @map("mixed_loading_flag")
+  requestedDeadline  DateTime?           @map("requested_deadline") @db.DateTime
+  replyDeadline      DateTime?           @map("reply_deadline") @db.DateTime
+  companyCd          String              @map("company_cd") @db.Char(4)
+  company            Company             @relation(fields: [companyCd], references: [companyCd])
+  staffId            Int?                @map("staff_id")
+  staff              Staff?              @relation(fields: [staffId], references: [id])
+  statusDiv          String              @map("status_div") @db.Char(2)
+  orderQuantity      Float               @map("order_quantity")
+  orderAmount        Int?                @map("order_amount")
+  temporaryFlag      Boolean?            @map("temporary_flag")
+  memo               String?             @map("memo") @db.VarChar(2000)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at")
+  createdBy          Int?                @map("created_by")
+  createdByUser      User?               @relation(fields: [createdBy], references: [mUserId])
+  updatedBy          Int?                @map("updated_by")
+  updatedByUser      User?               @relation(fields: [updatedBy], references: [mUserId], name: "updatedBy")
+  orderDetails       OrderDetail[]
+  orderActions       OrderAction[]
+  changeOrderHeaders ChangeOrderHeader[]
+  changeOrderDetails ChangeOrderDetail[]
+
+  @@map("order_headers")
+}
+
+model OrderDetail {
+  id              Int           @id @default(autoincrement())
+  orderHeaderId   Int           @map("order_id")
+  orderHeader     OrderHeader   @relation(fields: [orderHeaderId], references: [id])
+  productDetailCd String        @map("product_detail_cd") @db.VarChar(20)
+  productDetail   ProductDetail @relation(fields: [productDetailCd], references: [productDetailCd])
+  quantity        Int           @map("quantity")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at")
+
+  @@map("order_details")
+}
+
+model OrderAction {
+  id                 Int                @id @default(autoincrement())
+  orderHeaderId      Int                @map("order_id")
+  orderHeader        OrderHeader        @relation(fields: [orderHeaderId], references: [id])
+  actionDiv          String             @map("action_div") @db.Char(2)
+  statusDiv          String             @map("status_div") @db.Char(2)
+  userName           String             @map("user_nm") @db.VarChar(128)
+  companyName        String             @map("company_name") @db.VarChar(128)
+  actionDatetime     DateTime           @default(now()) @map("action_datetime")
+  memo               String?            @map("memo") @db.VarChar(2000)
+  confirmedFlag      Boolean?           @map("confirmed_flag")
+  closeFlag          Boolean            @map("close_flag")
+  changeDeadline     DateTime?          @map("change_deadline") @db.DateTime
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at")
+  changeOrderHeaders ChangeOrderHeader? @relation(fields: [changeOrderId], references: [id])
+  changeOrderId      BigInt?            @map("change_order_id")
+
+  @@map("order_actions")
+}
+
+model ChangeOrderHeader {
+  id                 BigInt              @id @default(autoincrement())
+  orderHeaderId      Int                 @map("order_id")
+  orderHeader        OrderHeader         @relation(fields: [orderHeaderId], references: [id])
+  itemCd             String              @map("item_cd") @db.Char(2)
+  item               Item                @relation(fields: [itemCd], references: [itemCd])
+  supplierCd         String              @map("supplier_cd") @db.Char(2)
+  supplier           Supplier            @relation(fields: [supplierCd], references: [supplierCd])
+  vehicleClassDiv    String?             @map("vehicle_class_div") @db.Char(2)
+  destinationId      Int?                @map("destination_id")
+  tradingCompany     String?             @map("trading_company") @db.VarChar(128)
+  mixedLoadingFlag   Boolean?            @map("mixed_loading_flag")
+  requestedDeadline  DateTime?           @map("requested_deadline") @db.DateTime
+  replyDeadline      DateTime?           @map("reply_deadline") @db.DateTime
+  companyCd          String              @map("company_cd") @db.Char(4)
+  company            Company             @relation(fields: [companyCd], references: [companyCd])
+  staffId            Int?                @map("staff_id")
+  staff              Staff?              @relation(fields: [staffId], references: [id])
+  statusDiv          String?             @map("status_div") @db.Char(2)
+  orderQuantity      Float?              @map("order_quantity")
+  orderAmount        Int?                @map("order_amount")
+  temporaryFlag      Boolean?            @map("temporary_flag")
+  memo               String?             @map("memo") @db.VarChar(2000)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at")
+  orderActions       OrderAction[]
+  changeOrderDetails ChangeOrderDetail[]
+
+  @@map("change_order_headers")
+}
+
+model ChangeOrderDetail {
+  id                Int               @id @default(autoincrement())
+  changeOrderId     BigInt            @map("order_id")
+  changeOrderHeader ChangeOrderHeader @relation(fields: [changeOrderId], references: [id])
+  productDetailCd   String            @map("product_detail_cd") @db.VarChar(20)
+  productDetail     ProductDetail     @relation(fields: [productDetailCd], references: [productDetailCd])
+  orderHeader       OrderHeader       @relation(fields: [orderHeaderId], references: [id])
+  quantity          Int               @map("quantity")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
+  orderHeaderId     Int
+
+  @@map("change_order_details")
+}
+
+model CommercialFlow {
+  commercialFlowCd     String   @id @db.Char(8)
+  itemCd               String?  @map("item_cd") @db.Char(2)
+  item                 Item?    @relation(fields: [itemCd], references: [itemCd])
+  supplierCd           String   @map("supplier_cd") @db.Char(2)
+  supplier             Supplier @relation(fields: [supplierCd], references: [supplierCd])
+  companyCd            String   @map("company_cd") @db.Char(4)
+  company              Company  @relation(fields: [companyCd], references: [companyCd])
+  monthlyForecast      Int?     @map("monthly_forecast")
+  tradingCompany1      String?  @map("trading_company_1") @db.VarChar(128)
+  tradingCompany2      String?  @map("trading_company_2") @db.VarChar(128)
+  tradingCompany3      String?  @map("trading_company_3") @db.VarChar(128)
+  tradingCompany4      String?  @map("trading_company_4") @db.VarChar(128)
+  deliveryDestination1 String?  @map("delivery_destination_1") @db.VarChar(128)
+  deliveryDestination2 String?  @map("delivery_destination_2") @db.VarChar(128)
+  deliveryDestination3 String?  @map("delivery_destination_3") @db.VarChar(128)
+  deliveryDestination4 String?  @map("delivery_destination_4") @db.VarChar(128)
+  deliveryDestination5 String?  @map("delivery_destination_5") @db.VarChar(128)
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("commercial_flows")
+}
+
+model Base {
+  id                Int      @id @default(autoincrement())
+  baseName          String   @map("base_name") @db.VarChar(128)
+  baseNameKana      String?  @map("base_name_kana") @db.VarChar(128)
+  baseDiv           String   @map("base_div") @db.Char(2)
+  telNumber         String   @map("tel_number") @db.VarChar(13)
+  postCd            String   @map("post_cd") @db.Char(7)
+  address1          String?  @map("address1") @db.VarChar(256)
+  address2          String?  @map("address2") @db.VarChar(256)
+  address3          String?  @map("address3") @db.VarChar(256)
+  entryVehicleLimit String?  @map("entry_vehicle_limit") @db.VarChar(256)
+  companyCd         String   @map("company_cd") @db.Char(4)
+  company           Company  @relation(fields: [companyCd], references: [companyCd])
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("bases")
+}
+
+model DivValues {
+  divCd        String        @map("div_cd") @db.VarChar(5)
+  divValue     String        @map("div_value") @db.Char(2)
+  divValueName String        @map("div_value_nm") @db.VarChar(128)
+
+  @@id([divCd, divValue])
+  @@map("div_values")
+}

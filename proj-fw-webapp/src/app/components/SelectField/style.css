@@ -1,0 +1,12 @@
+.select select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 1px;
+  text-overflow: '';
+}
+.my-select div[class$="-control"] {
+  min-height: 32px;
+}
+.my-select div[class$="-indicatorContainer"] {
+  padding: 6px;
+}

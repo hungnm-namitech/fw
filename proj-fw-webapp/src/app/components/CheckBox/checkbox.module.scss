@@ -1,0 +1,21 @@
+.checkbox {
+  &__input {
+    &:checked {
+      & ~ .checkbox__icon--checked {
+        display: inherit;
+      }
+      & ~ .checkbox__icon--uncheck {
+        display: none;
+      }
+    }
+  }
+
+  &__icon {
+    &--checked {
+      display: none;
+    }
+    &--uncheck {
+      display: inherit;
+    }
+  }
+}

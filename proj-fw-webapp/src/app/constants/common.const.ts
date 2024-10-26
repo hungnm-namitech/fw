@@ -1,0 +1,16 @@
+export const PAGES = {
+  USERS: '/users',
+  USER_CREATE: '/users/create',
+  BASES: '/bases',
+  BASES_CREATE: '/bases/create',
+  STAFFS: '/staffs',
+  STAFF_CREATE: '/staffs/create',
+  COMPANIES: '/companies',
+  SUPPLIERS: '/suppliers',
+  NOT_FOUND: '/404',
+  PERMISSION_DENIED: '/403',
+  ORDER_CREATE: '/orders/new-entry',
+  ORDERS: '/orders',
+  ORDERS_REPLY_DELIVERY: '/replying-delivery',
+  ITEM_GROUPS: '/item-groups',
+};

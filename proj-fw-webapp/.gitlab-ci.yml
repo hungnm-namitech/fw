@@ -1,0 +1,62 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: '/certs'
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
+
+lint-check:
+  stage: test
+  image: node:18-alpine
+  script:
+    - npm ci
+    - npm run lint
+  only:
+    - merge_requests
+
+build-demetio-dev:
+  stage: build
+  image: docker:20
+  services:
+    - docker:20-dind
+  variables:
+    DEPLOYER_IMAGE_TAG_NAME: $CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH
+    BUILD_IMAGE_TAG_COMMIT: $CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:$CI_COMMIT_SHORT_SHA
+    BUILD_IMAGE_TAG_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:latest
+  before_script:
+    - until docker info; do sleep 1; done
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
+    - apk add openssl git --update
+    - git clone -b "${SECRET_MANAGER_BRANCH_NAME}" "https://gitlab-ci-token:${CI_JOB_TOKEN}@${SECRET_MANAGER_REPO_URL}" ".workspace/demetio-env"
+    - cat ".workspace/demetio-env/files/${CI_PROJECT_NAME}/.env" | openssl enc -base64 -d -aes-256-cbc -salt -pass pass:$ENV_FILE_DECRYPT_SECRET -pbkdf2 > .env
+  after_script:
+    - docker logout $CI_REGISTRY
+  script:
+    - docker build -t $BUILD_IMAGE_TAG_COMMIT -t $BUILD_IMAGE_TAG_LATEST -f Dockerfile .
+    - docker push $DEPLOYER_IMAGE_TAG_NAME --all-tags
+    - echo "LATEST_BUILD_IMAGE_TAG_NAME=$BUILD_IMAGE_TAG_COMMIT" > .env
+  artifacts:
+    reports:
+      dotenv: .env
+    expire_in: 1 days
+  only:
+    refs:
+      - demetio-dev
+
+deploy-demetio-dev:
+  stage: deploy
+  image: caprover/cli-caprover:2.2.3
+  variables:
+    CAPROVER_APP: $CAPROVER_STAGING_APP
+    CAPROVER_APP_TOKEN: $CAPROVER_STAGING_APP_TOKEN
+    CAPROVER_IMAGE_NAME: $LATEST_BUILD_IMAGE_TAG_NAME
+  script:
+    - caprover deploy
+  only:
+    refs:
+      - demetio-dev
+

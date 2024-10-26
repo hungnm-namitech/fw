@@ -1,0 +1,23 @@
+.customer-combo-box {
+  .addl-class__multi-value {
+    background-color: #3C6255;
+
+    color: #ffffff;
+
+    .addl-class__multi-value__label {
+      color: #fff;
+    }
+  }
+}
+
+.order-list-search-combo {
+  input[type='checkbox'] ~ img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+  }
+}
